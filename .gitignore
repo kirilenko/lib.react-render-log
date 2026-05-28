@@ -1,0 +1,26 @@
+# IDE
+.idea
+.vscode
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+*.tsbuildinfo
+build
+out
+
+# Turbo
+.turbo
+
+# Testing
+coverage
+
+# Misc
+.DS_Store
+*.pem
+.env
+*.local
