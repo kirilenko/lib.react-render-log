@@ -53,6 +53,14 @@ const getUpdatedRepetitionsCount = (props: { key: string; timeToLive: number }):
   return updatedRepetitionsCount
 }
 
+export type RenderLogOptions = { expected: number }
+
+const isRenderLogOptions = (value: unknown): value is RenderLogOptions =>
+  value !== null &&
+  typeof value === 'object' &&
+  'expected' in value &&
+  typeof (value as Record<string, unknown>).expected === 'number'
+
 export const renderLogCreator = (props: {
   key: string
   colors: RenderLogColors
@@ -62,13 +70,24 @@ export const renderLogCreator = (props: {
   const { colors, isStrictMode, key, timeToLive } = props
 
   const repetitionsCount = getUpdatedRepetitionsCount({ key, timeToLive })
+  const actualCount = repetitionsCount + 1
 
   const currentCase = getLogCases({ colors, isStrictMode })[
     repetitionsCount > 2 ? 2 : repetitionsCount
   ]!
 
   return (...args) => {
-    const argsAsString = args.length ? ` ⟶ ${args.map((p) => `${p}`).join(', ')}` : ''
+    const firstArg = args[0]
+    const options = isRenderLogOptions(firstArg) ? firstArg : undefined
+    const restArgs = options ? args.slice(1) : args
+
+    if (options && actualCount > options.expected) {
+      const errorMessage = `%c • ${key} - unexpected render (${actualCount}/${options.expected})!`
+      console.error(errorMessage, 'color:red') // eslint-disable-line no-console
+      return
+    }
+
+    const argsAsString = restArgs.length ? ` ⟶ ${restArgs.map((p) => `${p}`).join(', ')}` : ''
 
     const { message } = currentCase as LogCaseWithMessage
     const { getMessage } = currentCase as LogCaseWithMessageGetter
