@@ -76,18 +76,18 @@ function HeaderAuth() {
 }
 ```
 
-| Situation | Output |
-|---|---|
-| Render 1 of 2 (within expected) | `• HeaderAuth` (green) |
-| Render 2 of 2 (within expected) | `• HeaderAuth - extra repeats (1)!` (orange) |
-| Render 3 — exceeds expected | `• HeaderAuth - unexpected render (3/2)!` (red, `console.error`) |
+| Situation                       | Output                                                           |
+| ------------------------------- | ---------------------------------------------------------------- |
+| Render 1 of 2 (within expected) | `• HeaderAuth` (green)                                           |
+| Render 2 of 2 (within expected) | `• HeaderAuth - extra repeats (1)!` (orange)                     |
+| Render 3 — exceeds expected     | `• HeaderAuth - unexpected render (3/2)!` (red, `console.error`) |
 
 Plain args still work as before — only an object with an `expected` number key activates validation:
 
 ```tsx
-getRenderLog('MyComponent')()                  // no args — basic log
-getRenderLog('MyComponent')('some context')    // string arg — logged as context
-getRenderLog('MyComponent')({ expected: 2 })   // validation
+getRenderLog('MyComponent')() // no args — basic log
+getRenderLog('MyComponent')('some context') // string arg — logged as context
+getRenderLog('MyComponent')({ expected: 2 }) // validation
 ```
 
 ## `RenderLogProvider` props
@@ -101,12 +101,12 @@ getRenderLog('MyComponent')({ expected: 2 })   // validation
 
 ## Console output
 
-| Render                    | Color (default) | Label                                       |
-| ------------------------- | --------------- | ------------------------------------------- |
-| First                     | `lightgreen`    | `• MyComponent`                             |
-| Strict-mode repeat        | `lightgreen`    | `• MyComponent - repeat by strict-mode`     |
-| Extra re-render           | `orange`        | `• MyComponent - extra repeats (N)!`        |
-| Exceeds `expected` count  | `red` (error)   | `• MyComponent - unexpected render (A/E)!`  |
+| Render                   | Color (default) | Label                                      |
+| ------------------------ | --------------- | ------------------------------------------ |
+| First                    | `lightgreen`    | `• MyComponent`                            |
+| Strict-mode repeat       | `lightgreen`    | `• MyComponent - repeat by strict-mode`    |
+| Extra re-render          | `orange`        | `• MyComponent - extra repeats (N)!`       |
+| Exceeds `expected` count | `red` (error)   | `• MyComponent - unexpected render (A/E)!` |
 
 ## Peer dependencies
 

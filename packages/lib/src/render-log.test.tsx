@@ -142,10 +142,7 @@ describe('expected render count', () => {
       </RenderLogProvider>
     )
 
-    expect(logSpy).toHaveBeenCalledWith(
-      expect.stringContaining('NormalLog'),
-      expect.any(String)
-    )
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('NormalLog'), expect.any(String))
   })
 
   it('backward compatible: plain args still work', () => {
@@ -163,10 +160,7 @@ describe('expected render count', () => {
       </RenderLogProvider>
     )
 
-    expect(logSpy).toHaveBeenCalledWith(
-      expect.stringContaining('some context'),
-      expect.any(String)
-    )
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('some context'), expect.any(String))
   })
 })
 
