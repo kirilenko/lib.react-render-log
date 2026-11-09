@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef } from 'react'
 
 import { RenderLogContext } from './render-log.context'
-import { getChangedKeys, writeRenderLog } from './render-log.features'
+import { getDetailsChanges, writeRenderLog } from './render-log.features'
 import type { RenderLogOptions } from './render-log.types'
 
 type RenderLogState = {
@@ -35,16 +35,20 @@ export const useRenderLog = (name: string, options: RenderLogOptions = {}): void
     if (!debugEnabled) return
 
     // Compared with the last logged render, so changes made while logging was off still show up
-    const changedKeys = details ? getChangedKeys(current.prevDetails, details) : []
+    const changes = details
+      ? getDetailsChanges(current.prevDetails, details)
+      : { byReference: [], byValue: [] }
     current.prevDetails = details
 
-    // With `details` a re-render is justified by a changed key; without them only
-    // timing is known, and a quick burst of re-renders is what usually needs fixing
+    // With `details` a re-render is justified only by a key whose value changed (a new
+    // reference alone is what breaks `memo`); without them only timing is known, and
+    // a quick burst of re-renders is what usually needs fixing
     const isSuspicious =
-      current.commits > 1 && (details ? changedKeys.length === 0 : sincePrevCommit < burstWindow)
+      current.commits > 1 &&
+      (details ? changes.byValue.length === 0 : sincePrevCommit < burstWindow)
 
     writeRenderLog({
-      changedKeys,
+      changes,
       colors,
       commits: current.commits,
       details,

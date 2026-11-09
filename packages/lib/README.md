@@ -71,6 +71,8 @@ Options: `name` (defaults to the component's `displayName` or `name`) and `expec
 
 The HOC logs the component's props as `details`, so a re-render with the same props, one that `memo` would have skipped, shows up orange with `→ nothing changed`.
 
+Refs are forwarded to the wrapped component, and its static members (e.g. `Card.Header`) are copied to the wrapper.
+
 Use `renderLogId` to tell instances apart in the log. It is not passed to the wrapped component:
 
 ```tsx
@@ -92,7 +94,7 @@ Green means all is well, orange marks a re-render worth fixing, red means `expec
 
 A re-render is orange when it has no visible reason:
 
-- with `details`, none of its keys changed since the last logged render;
+- with `details`, no key changed its value since the last logged render. A key that only got a new reference with the same content, such as an inline callback, a new `children` element or an equal object, is listed as `changed by reference`: exactly what makes `memo` re-render;
 - without `details`, it came sooner than `burstWindow` (500 ms by default) after the previous one: a quick burst of re-renders is usually unnecessary.
 
 ## `RenderLogProvider` props

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { StrictMode } from 'react'
+import { createRef, forwardRef, StrictMode } from 'react'
 import { render } from '@testing-library/react'
 import type { MockInstance } from 'vitest'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -219,6 +219,37 @@ describe('re-render color', () => {
   })
 })
 
+describe('reference-only changes', () => {
+  const renderWith = (details: Record<string, unknown>) => (
+    <Debug>
+      <Logged name="Refs" options={{ details }} />
+    </Debug>
+  )
+  const lastMessage = () => logSpy.mock.lastCall?.slice(0, 2)
+
+  it('marks new callbacks, elements and equal objects as reference-only and suspicious', () => {
+    const { rerender } = render(
+      renderWith({ children: <b>x</b>, onClick: () => {}, style: { color: 'red' } })
+    )
+    rerender(renderWith({ children: <b>x</b>, onClick: () => {}, style: { color: 'red' } }))
+
+    expect(lastMessage()).toEqual([
+      '%c • Refs - re-render #1 → changed by reference: children, onClick, style',
+      'color:orange',
+    ])
+  })
+
+  it('treats a changed nested value as a value change', () => {
+    const { rerender } = render(renderWith({ children: <b>x</b>, style: { color: 'red' } }))
+    rerender(renderWith({ children: <b>y</b>, style: { color: 'red' } }))
+
+    expect(lastMessage()).toEqual([
+      '%c • Refs - re-render #1 → changed: children; changed by reference: style',
+      'color:lightgreen',
+    ])
+  })
+})
+
 describe('RenderLogProvider', () => {
   it('renders children', () => {
     const { getByText } = render(
@@ -355,6 +386,34 @@ describe('withRenderLog', () => {
       ['%c • Card - re-render #1 → nothing changed', 'color:orange', { label: 'a' }],
       ['%c • Card - re-render #2 → changed: label', 'color:lightgreen', { label: 'b' }],
     ])
+  })
+
+  it('forwards refs to the wrapped component', () => {
+    const Input = withRenderLog(
+      // forwardRef so the inner component takes a ref on React 18 as well
+      // eslint-disable-next-line @eslint-react/no-forward-ref
+      forwardRef<HTMLInputElement>(function Input(_, ref) {
+        return <input ref={ref} />
+      })
+    )
+    const ref = createRef<HTMLInputElement>()
+
+    render(<Input ref={ref} />)
+
+    expect(ref.current).toBeInstanceOf(HTMLInputElement)
+  })
+
+  it('copies static members of the wrapped component', () => {
+    function Card() {
+      return null
+    }
+    Card.Header = 'header'
+    Card.displayName = 'Card'
+
+    const Wrapped = withRenderLog(Card, { name: 'Logged' })
+
+    expect(Wrapped.Header).toBe('header')
+    expect(Wrapped.displayName).toBe('Logged')
   })
 
   it('accepts props declared as an interface', () => {
