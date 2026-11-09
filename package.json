@@ -8,30 +8,48 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
-    "check": "turbo run lint typecheck && prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\" --ignore-path .prettierignore",
+    "check": "turbo run lint typecheck lint:package size && prettier --check .",
     "release": "semantic-release",
     "prepare": "husky"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.6.0",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "semantic-release": "^24.2.3",
-    "@commitlint/config-conventional": "^19.6.0",
-    "@eslint/js": "^9.15.0",
-    "eslint": "^9.15.0",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.14",
-    "globals": "^15.12.0",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@eslint-react/eslint-plugin": "^5.28.8",
+    "@eslint/js": "^10.0.1",
+    "@semantic-release/changelog": "^7.0.0",
+    "eslint": "^10.14.0",
+    "eslint-config-k8": "^4.0.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-hooks": "^0.4.3",
+    "eslint-plugin-import-x": "^4.18.1",
+    "eslint-plugin-jsx-a11y-x": "^0.2.0",
+    "eslint-plugin-perfectionist": "^5.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "globals": "^17.14.0",
     "husky": "^9.1.7",
-    "prettier": "^3.3.3",
-    "turbo": "^2.3.3",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.15.0"
+    "prettier": "^3.9.10",
+    "semantic-release": "^25.0.9",
+    "turbo": "^2.11.10",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.72.1",
+    "typescript-native": "npm:typescript@^7.0.2"
   },
   "engines": {
-    "node": ">=18",
-    "pnpm": ">=9"
+    "node": "^22.14.0 || >=24.10.0",
+    "pnpm": ">=10"
   },
-  "packageManager": "pnpm@9.12.0"
+  "packageManager": "pnpm@10.34.9",
+  "pnpm": {
+    "overrides": {
+      "handlebars": "^4.7.10",
+      "glob": "^14.0.2",
+      "minimatch": "^11.0.1"
+    },
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
 }

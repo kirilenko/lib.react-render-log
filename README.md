@@ -8,10 +8,10 @@ Monorepo for the [`react-render-log`](https://www.npmjs.com/package/react-render
 
 ## Requirements
 
-| Tool | Version                            |
-| ---- | ---------------------------------- |
-| Node | ≥ 18 (`.nvmrc` pins `24.12.0`)     |
-| pnpm | ≥ 9 (`9.12.0` pinned via corepack) |
+| Tool | Version                                    |
+| ---- | ------------------------------------------ |
+| Node | 22.14+ or 24.10+ (`.nvmrc` pins `24.12.0`) |
+| pnpm | ≥ 10 (`10.34.9` pinned via corepack)       |
 
 ## Structure
 
@@ -35,13 +35,13 @@ pnpm install
 
 ## Commands
 
-| Command        | Description                           |
-| -------------- | ------------------------------------- |
-| `pnpm dev`     | Start playground in watch mode        |
-| `pnpm build`   | Build the library (CJS + ESM + types) |
-| `pnpm test`    | Run tests                             |
-| `pnpm check`   | Lint + typecheck + prettier           |
-| `pnpm release` | Publish to npm via semantic-release   |
+| Command        | Description                                                                 |
+| -------------- | --------------------------------------------------------------------------- |
+| `pnpm dev`     | Start playground in watch mode                                              |
+| `pnpm build`   | Build the library (CJS + ESM + types)                                       |
+| `pnpm test`    | Run tests                                                                   |
+| `pnpm check`   | Lint + typecheck + package exports (publint, attw) + bundle size + prettier |
+| `pnpm release` | Publish to npm via semantic-release                                         |
 
 ## Contributing
 
