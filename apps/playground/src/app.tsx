@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { RenderLogProvider, useRenderLog, withRenderLog } from 'react-render-log'
 
@@ -23,6 +24,28 @@ const Item = withRenderLog(ItemBase, { name: 'Item' })
 function Counter({ count }: { count: number }) {
   useRenderLog('Counter', { details: { count, step: Math.floor(count / 3) } })
   return null
+}
+
+// Gets an inline callback and a new `children` element on every render:
+// the log shows them as "changed by reference"
+function ResetBase({ children, onReset }: { children: ReactNode; onReset: () => void }) {
+  return (
+    <button onClick={onReset} style={{ ...buttonStyle, background: '#fafafa', color: '#18181b' }}>
+      {children}
+    </button>
+  )
+}
+
+const Reset = withRenderLog(ResetBase, { name: 'Reset' })
+
+const buttonStyle = {
+  background: '#18181b',
+  border: '1px solid #e4e4e7',
+  borderRadius: 6,
+  color: '#fafafa',
+  cursor: 'pointer',
+  fontSize: '0.875rem',
+  padding: '0.5rem 1rem',
 }
 
 const items = ['Apple', 'Banana', 'Cherry']
@@ -78,20 +101,14 @@ export default function App() {
 
         <Counter count={count} />
 
-        <button
-          onClick={() => setCount((c) => c + 1)}
-          style={{
-            background: '#18181b',
-            border: '1px solid #e4e4e7',
-            borderRadius: 6,
-            color: '#fafafa',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            padding: '0.5rem 1rem',
-          }}
-        >
-          Force re-render ({count})
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={() => setCount((c) => c + 1)} style={buttonStyle}>
+            Force re-render ({count})
+          </button>
+          <Reset onReset={() => setCount(0)}>
+            <span>Reset</span>
+          </Reset>
+        </div>
       </main>
     </RenderLogProvider>
   )
