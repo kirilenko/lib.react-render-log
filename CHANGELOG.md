@@ -1,3 +1,16 @@
+# [2.1.0](https://github.com/kirilenko/lib.react-render-log/compare/v2.0.0...v2.1.0) (2026-11-09)
+
+
+### Bug Fixes
+
+* color only suspicious re-renders orange ([f283cab](https://github.com/kirilenko/lib.react-render-log/commit/f283cab04fa4ec99d5336f135dcc7cf2da6c6355))
+* compare details with the last logged render ([c2da124](https://github.com/kirilenko/lib.react-render-log/commit/c2da1240058a318da5665ba703efa5ebd21609db))
+
+
+### Features
+
+* log withRenderLog props as details ([bcc85d8](https://github.com/kirilenko/lib.react-render-log/commit/bcc85d866875244576a2995bde4475d2ea622fc1))
+
 # [2.0.0](https://github.com/kirilenko/lib.react-render-log/compare/v1.3.1...v2.0.0) (2026-11-09)
 
 

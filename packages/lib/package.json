@@ -1,6 +1,6 @@
 {
   "name": "react-render-log",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "React hook and HOC for logging component re-renders to the browser console",
   "keywords": [
     "react",
