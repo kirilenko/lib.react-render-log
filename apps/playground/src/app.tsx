@@ -21,7 +21,7 @@ function ItemBase({ index, text }: ItemProps) {
 const Item = withRenderLog(ItemBase, { name: 'Item' })
 
 function Counter({ count }: { count: number }) {
-  useRenderLog('Counter', { details: { count, parity: count % 2 ? 'odd' : 'even' } })
+  useRenderLog('Counter', { details: { count, step: Math.floor(count / 3) } })
   return null
 }
 

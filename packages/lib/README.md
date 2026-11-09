@@ -49,10 +49,10 @@ function UserCard({ user, filter }: Props) {
 • UserCard - re-render #1 ⟶ changed: filter {user: {…}, filter: 'active'}
 ```
 
-| Option     | Type                      | Description                                                                         |
-| ---------- | ------------------------- | ----------------------------------------------------------------------------------- |
-| `details`  | `Record<string, unknown>` | Logged as is (expandable in DevTools); keys changed since the last render are named |
-| `expected` | `number`                  | Max renders per mount; each render beyond it logs a red `console.error`             |
+| Option     | Type                      | Description                                                                                |
+| ---------- | ------------------------- | ------------------------------------------------------------------------------------------ |
+| `details`  | `Record<string, unknown>` | Logged as is (expandable in DevTools); keys changed since the last logged render are named |
+| `expected` | `number`                  | Max renders per mount; each render beyond it logs a red `console.error`                    |
 
 ### 2b. HOC — `withRenderLog`
 

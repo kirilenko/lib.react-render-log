@@ -27,11 +27,12 @@ export const useRenderLog = (name: string, options: RenderLogOptions = {}): void
     current.lastRender = render
     current.commits += 1
 
+    if (!debugEnabled) return
+
+    // Compared with the last logged render, so changes made while logging was off still show up
     const changedKeys = details ? getChangedKeys(current.prevDetails, details) : []
     current.prevDetails = details
 
-    if (debugEnabled) {
-      writeRenderLog({ changedKeys, colors, commits: current.commits, details, expected, name })
-    }
+    writeRenderLog({ changedKeys, colors, commits: current.commits, details, expected, name })
   })
 }

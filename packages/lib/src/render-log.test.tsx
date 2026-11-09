@@ -148,6 +148,23 @@ describe('useRenderLog', () => {
       { filter: 'b', page: 1 }
     )
   })
+
+  it('compares details with the last logged render', () => {
+    const renderTree = (debugEnabled: boolean, page: number) => (
+      <RenderLogProvider debugEnabled={debugEnabled}>
+        <Logged name="Paused" options={{ details: { page } }} />
+      </RenderLogProvider>
+    )
+
+    const { rerender } = render(renderTree(true, 1))
+    rerender(renderTree(false, 2))
+    rerender(renderTree(true, 2))
+
+    expect(logMessages()).toEqual([
+      '%c • Paused - mount',
+      '%c • Paused - re-render #2 ⟶ changed: page',
+    ])
+  })
 })
 
 describe('RenderLogProvider', () => {
