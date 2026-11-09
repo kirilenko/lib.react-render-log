@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/kirilenko/lib.react-render-log/compare/v2.1.1...v2.2.0) (2026-11-09)
+
+
+### Features
+
+* tell reference-only changes apart, forward refs and statics in withRenderLog ([c23b714](https://github.com/kirilenko/lib.react-render-log/commit/c23b714a5a89c764e39e8670e7c2d1b3c4d8deb9))
+
 ## [2.1.1](https://github.com/kirilenko/lib.react-render-log/compare/v2.1.0...v2.1.1) (2026-11-09)
 
 
