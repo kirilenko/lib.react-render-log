@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/kirilenko/lib.react-render-log/compare/v1.3.0...v1.3.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* avoid extra re-renders and leaks, pass log args to the console as is ([c949a39](https://github.com/kirilenko/lib.react-render-log/commit/c949a39a672a9cd519cc2a2481825e8826a93693))
+
 # [1.3.0](https://github.com/kirilenko/lib.react-render-log/compare/v1.2.0...v1.3.0) (2026-06-11)
 
 
