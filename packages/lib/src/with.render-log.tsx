@@ -3,7 +3,7 @@ import type { ComponentType, ReactElement } from 'react'
 import type { PropsWithRenderLog, PropsWithRenderLogId, WithRenderLog } from './render-log.types'
 import { useRenderLog } from './use.render-log'
 
-export const withRenderLog: WithRenderLog = <Props extends Record<string, unknown>>(
+export const withRenderLog: WithRenderLog = <Props extends object>(
   Component: ComponentType<PropsWithRenderLog<Props>>,
   customDisplayName?: string
 ): ComponentType<PropsWithRenderLogId<Props>> => {
@@ -13,10 +13,10 @@ export const withRenderLog: WithRenderLog = <Props extends Record<string, unknow
 
   const C = (props: PropsWithRenderLogId<Props>): ReactElement<Props> => {
     const getRenderLog = useRenderLog()
-    const { renderLogId: id = '' } = props
+    const { renderLogId: id = '', ...ownProps } = props
     getRenderLog(`${displayName}${id === '' ? '' : `.${id}`}`)()
 
-    return <Component {...props} {...{ getRenderLog }} />
+    return <Component {...(ownProps as Props)} {...{ getRenderLog }} />
   }
 
   C.displayName = displayName

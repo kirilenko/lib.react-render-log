@@ -18,20 +18,15 @@ export type OwnRenderLogProviderProps = {
 
 export type RenderLogProviderProps = PropsWithChildren<OwnRenderLogProviderProps>
 
-export type PropsWithRenderLog<Props extends Record<string, unknown>> = Props & {
+export type PropsWithRenderLog<Props extends object> = Props & {
   getRenderLog: RenderLogContextValue
 }
 
-export type PropsWithRenderLogId<Props extends Record<string, unknown>> = Props & {
+export type PropsWithRenderLogId<Props extends object> = Props & {
   renderLogId?: string | number
 }
 
-export type WithRenderLog = <Props extends Record<string, unknown>>(
+export type WithRenderLog = <Props extends object>(
   Component: ComponentType<PropsWithRenderLog<Props>>,
   customDisplayName?: string
 ) => ComponentType<PropsWithRenderLogId<Props>>
-
-export type WithRenderLogProvider = <Props extends Record<string, unknown>>(
-  this: OwnRenderLogProviderProps,
-  Component: ComponentType<Props>
-) => ComponentType<Props>

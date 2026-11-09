@@ -7,7 +7,6 @@ export type {
   RenderLogContextValue,
   RenderLogProviderProps,
   WithRenderLog,
-  WithRenderLogProvider,
 } from './render-log.types'
 export type { RenderLogOptions } from './render-log.features'
 export { RenderLogProvider } from './render-log.provider'

@@ -32,23 +32,33 @@ const getLogCases: GetLogCases = ({ colors, isStrictMode }) => {
   ]
 }
 
-type CacheRecord = { repetitionsCount: number; timestamp: number }
-const cache: Record<string, CacheRecord> = {}
+type CacheRecord = { repetitionsCount: number; timestamp: number; timeToLive: number }
 
-const setCache = (key: string, repetitionsCount: number): void => {
-  cache[key] = { repetitionsCount, timestamp: Date.now() }
+// Exported for tests only, not part of the public API
+export const cache = new Map<string, CacheRecord>()
+
+let lastSweepAt = 0
+
+// An expired record counts the same as a missing one, so deleting it changes nothing
+// but keeps the cache from growing with every key ever logged (e.g. `renderLogId` per list item)
+const sweepExpired = (now: number, timeToLive: number): void => {
+  if (now - lastSweepAt < timeToLive) return
+  lastSweepAt = now
+  cache.forEach((record, key) => {
+    if (now - record.timestamp >= record.timeToLive) cache.delete(key)
+  })
 }
-
-const getCache = (key: string): CacheRecord | null => cache[key] ?? null
 
 const getUpdatedRepetitionsCount = (props: { key: string; timeToLive: number }): number => {
   const { key, timeToLive } = props
-  const updatedRepetitionsCount =
-    getCache(key) && Date.now() - getCache(key)!.timestamp < timeToLive
-      ? getCache(key)!.repetitionsCount + 1
-      : 0
+  const now = Date.now()
+  sweepExpired(now, timeToLive)
 
-  setCache(key, updatedRepetitionsCount)
+  const record = cache.get(key)
+  const updatedRepetitionsCount =
+    record && now - record.timestamp < timeToLive ? record.repetitionsCount + 1 : 0
+
+  cache.set(key, { repetitionsCount: updatedRepetitionsCount, timestamp: now, timeToLive })
 
   return updatedRepetitionsCount
 }
@@ -87,17 +97,17 @@ export const renderLogCreator = (props: {
       return
     }
 
-    const argsAsString = restArgs.length ? ` ⟶ ${restArgs.map(String).join(', ')}` : ''
-
     const { message } = currentCase as LogCaseWithMessage
     const { getMessage } = currentCase as LogCaseWithMessageGetter
     const currentCaseMessage = message ?? getMessage?.(repetitionsCount) ?? ''
+    const argsArrow = restArgs.length ? ' ⟶' : ''
 
-    const totalMessage: [string, string] = [
-      `%c • ${key + currentCaseMessage + argsAsString}`,
+    // Args go to the console as is, so objects stay expandable in DevTools
+    // eslint-disable-next-line no-console
+    console.log(
+      `%c • ${key + currentCaseMessage + argsArrow}`,
       `color:${currentCase.color}`,
-    ]
-
-    console.log(...totalMessage) // eslint-disable-line no-console
+      ...restArgs
+    )
   }
 }

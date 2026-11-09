@@ -1,12 +1,18 @@
 import { render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { cache } from './render-log.features'
 import { RenderLogProvider } from './render-log.provider'
 import type { PropsWithRenderLog } from './render-log.types'
 import { useRenderLog } from './use.render-log'
 import { withRenderLog } from './with.render-log'
 
 afterEach(() => vi.restoreAllMocks())
+
+function ExpiringItem({ id }: { id: number }) {
+  useRenderLog()(`ExpiringItem.${id}`)()
+  return null
+}
 
 describe('RenderLogProvider', () => {
   it('renders children', () => {
@@ -73,6 +79,60 @@ describe('RenderLogProvider', () => {
     )
 
     expect(spy).toHaveBeenCalledWith(expect.stringContaining('MyComponent'), expect.any(String))
+  })
+
+  it('does not re-render consumers when inline colors keep the same values', () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    let consumerRenders = 0
+    function Consumer() {
+      useRenderLog()
+      consumerRenders++
+      return null
+    }
+    // Stable element: it re-renders only when the context value changes
+    const consumer = <Consumer />
+
+    const renderProvider = () => (
+      <RenderLogProvider
+        colors={{ extraRender: 'red', firstRender: 'blue' }}
+        debugEnabled
+        isStrictMode={false}
+      >
+        {consumer}
+      </RenderLogProvider>
+    )
+
+    const { rerender } = render(renderProvider())
+    rerender(renderProvider())
+
+    expect(consumerRenders).toBe(1)
+  })
+
+  it('removes expired records from the render cache', () => {
+    vi.useFakeTimers()
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    const { rerender } = render(
+      <RenderLogProvider debugEnabled isStrictMode={false}>
+        {[1, 2, 3].map((id) => (
+          <ExpiringItem key={id} id={id} />
+        ))}
+      </RenderLogProvider>
+    )
+    expect(cache.has('ExpiringItem.1')).toBe(true)
+
+    vi.advanceTimersByTime(1000)
+    rerender(
+      <RenderLogProvider debugEnabled isStrictMode={false}>
+        <ExpiringItem id={4} />
+      </RenderLogProvider>
+    )
+
+    expect([...cache.keys()].filter((key) => key.startsWith('ExpiringItem.'))).toEqual([
+      'ExpiringItem.4',
+    ])
+    vi.useRealTimers()
   })
 })
 
@@ -161,7 +221,29 @@ describe('expected render count', () => {
       </RenderLogProvider>
     )
 
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('some context'), expect.any(String))
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('PlainArgs ⟶'),
+      expect.any(String),
+      'some context'
+    )
+  })
+
+  it('passes object args to the console as is', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const payload = { id: 1 }
+
+    function ObjectArgs() {
+      useRenderLog()('ObjectArgs')(payload)
+      return null
+    }
+
+    render(
+      <RenderLogProvider debugEnabled isStrictMode={false}>
+        <ObjectArgs />
+      </RenderLogProvider>
+    )
+
+    expect(logSpy).toHaveBeenCalledWith(expect.any(String), expect.any(String), payload)
   })
 })
 
@@ -227,5 +309,39 @@ describe('withRenderLog', () => {
     )
 
     expect(spy).toHaveBeenCalledWith(expect.stringContaining('Item.42'), expect.any(String))
+  })
+
+  it('does not pass renderLogId to the wrapped component', () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    let receivedProps: object = {}
+    function Base(props: PropsWithRenderLog<{ label: string }>) {
+      receivedProps = props
+      return null
+    }
+    const Wrapped = withRenderLog(Base)
+
+    render(
+      <RenderLogProvider debugEnabled isStrictMode={false}>
+        <Wrapped label="hello" renderLogId={1} />
+      </RenderLogProvider>
+    )
+
+    expect(receivedProps).not.toHaveProperty('renderLogId')
+    expect(receivedProps).toHaveProperty('label', 'hello')
+  })
+
+  it('accepts props declared as an interface', () => {
+    interface Props {
+      label: string
+    }
+    function Base({ label }: PropsWithRenderLog<Props>) {
+      return <span>{label}</span>
+    }
+    const Wrapped = withRenderLog(Base)
+
+    const { getByText } = render(<Wrapped label="from interface" />)
+
+    expect(getByText('from interface')).toBeInTheDocument()
   })
 })

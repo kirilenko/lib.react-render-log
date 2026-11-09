@@ -18,18 +18,25 @@ const defaultTimeToLive = 500
 
 export const RenderLogProvider: FC<RenderLogProviderProps> = ({
   children,
-  colors = defaultColors,
+  colors: { extraRender, firstRender } = defaultColors,
   debugEnabled,
   isStrictMode,
   timeToLive = defaultTimeToLive,
 }) => {
+  // Depends on the color values rather than the `colors` object, so an inline
+  // `colors={{ … }}` doesn't re-render every consumer on each provider render
   const value = useMemo<RenderLogContextValue>(
     () =>
       debugEnabled
         ? (displayName: string) =>
-            renderLogCreator({ colors, isStrictMode, key: displayName, timeToLive })
+            renderLogCreator({
+              colors: { extraRender, firstRender },
+              isStrictMode,
+              key: displayName,
+              timeToLive,
+            })
         : () => () => {},
-    [colors, debugEnabled, isStrictMode, timeToLive]
+    [debugEnabled, extraRender, firstRender, isStrictMode, timeToLive]
   )
 
   return <RenderLogContext.Provider {...{ value }}>{children}</RenderLogContext.Provider>
