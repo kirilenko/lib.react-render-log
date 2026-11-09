@@ -1,14 +1,15 @@
-import { ComponentType, ReactElement } from 'react'
+import type { ComponentType, ReactElement } from 'react'
 
-import { PropsWithRenderLog, PropsWithRenderLogId, WithRenderLog } from './render-log.types'
+import type { PropsWithRenderLog, PropsWithRenderLogId, WithRenderLog } from './render-log.types'
 import { useRenderLog } from './use.render-log'
 
 export const withRenderLog: WithRenderLog = <Props extends Record<string, unknown>>(
   Component: ComponentType<PropsWithRenderLog<Props>>,
   customDisplayName?: string
 ): ComponentType<PropsWithRenderLogId<Props>> => {
+  // Skips empty strings too: anonymous components have `name === ''`
   const displayName =
-    customDisplayName || Component.displayName || Component.name || 'Unknown Component'
+    [customDisplayName, Component.displayName, Component.name].find(Boolean) ?? 'Unknown Component'
 
   const C = (props: PropsWithRenderLogId<Props>): ReactElement<Props> => {
     const getRenderLog = useRenderLog()

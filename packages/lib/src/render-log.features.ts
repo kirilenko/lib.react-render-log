@@ -1,10 +1,10 @@
-import { RenderLog, RenderLogColors } from './render-log.types'
+import type { RenderLog, RenderLogColors } from './render-log.types'
 
 type LogCaseWithMessage = { color: string; message?: string }
 
 type LogCaseWithMessageGetter = {
   color: string
-  getMessage?: (p?: unknown) => string
+  getMessage?: (repeatsCount: number) => string
 }
 
 type LogCase = LogCaseWithMessage | LogCaseWithMessageGetter
@@ -22,7 +22,7 @@ const getLogCases: GetLogCases = ({ colors, isStrictMode }) => {
 
   const extraRenderCase: LogCase = {
     color: colors.extraRender,
-    getMessage: (repeatsCount = '') => ` - extra repeats (${repeatsCount})!`,
+    getMessage: (repeatsCount) => ` - extra repeats (${repeatsCount})!`,
   }
 
   return [
@@ -39,7 +39,7 @@ const setCache = (key: string, repetitionsCount: number): void => {
   cache[key] = { repetitionsCount, timestamp: Date.now() }
 }
 
-const getCache = (key: string): CacheRecord | null => cache[key] || null
+const getCache = (key: string): CacheRecord | null => cache[key] ?? null
 
 const getUpdatedRepetitionsCount = (props: { key: string; timeToLive: number }): number => {
   const { key, timeToLive } = props
@@ -83,15 +83,15 @@ export const renderLogCreator = (props: {
 
     if (options && actualCount > options.expected) {
       const errorMessage = `%c • ${key} - unexpected render (${actualCount}/${options.expected})!`
-      console.error(errorMessage, 'color:red') // eslint-disable-line no-console
+      console.error(errorMessage, 'color:red')
       return
     }
 
-    const argsAsString = restArgs.length ? ` ⟶ ${restArgs.map((p) => `${p}`).join(', ')}` : ''
+    const argsAsString = restArgs.length ? ` ⟶ ${restArgs.map(String).join(', ')}` : ''
 
     const { message } = currentCase as LogCaseWithMessage
     const { getMessage } = currentCase as LogCaseWithMessageGetter
-    const currentCaseMessage = message || (getMessage && getMessage(repetitionsCount)) || ''
+    const currentCaseMessage = message ?? getMessage?.(repetitionsCount) ?? ''
 
     const totalMessage: [string, string] = [
       `%c • ${key + currentCaseMessage + argsAsString}`,

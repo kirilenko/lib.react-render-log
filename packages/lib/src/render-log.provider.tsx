@@ -1,8 +1,13 @@
-import { FC, useMemo } from 'react'
+import type { FC } from 'react'
+import { useMemo } from 'react'
 
 import { RenderLogContext } from './render-log.context'
 import { renderLogCreator } from './render-log.features'
-import { RenderLogColors, RenderLogContextValue, RenderLogProviderProps } from './render-log.types'
+import type {
+  RenderLogColors,
+  RenderLogContextValue,
+  RenderLogProviderProps,
+} from './render-log.types'
 
 const defaultColors: RenderLogColors = {
   extraRender: 'orange',
@@ -18,14 +23,14 @@ export const RenderLogProvider: FC<RenderLogProviderProps> = ({
   isStrictMode,
   timeToLive = defaultTimeToLive,
 }) => {
-  const value: RenderLogContextValue = useMemo<RenderLogContextValue>(() => {
-    if (!debugEnabled) {
-      return () => () => {}
-    }
-
-    return (displayName: string) =>
-      renderLogCreator({ colors, isStrictMode, key: displayName, timeToLive })
-  }, [colors, debugEnabled, isStrictMode, timeToLive])
+  const value = useMemo<RenderLogContextValue>(
+    () =>
+      debugEnabled
+        ? (displayName: string) =>
+            renderLogCreator({ colors, isStrictMode, key: displayName, timeToLive })
+        : () => () => {},
+    [colors, debugEnabled, isStrictMode, timeToLive]
+  )
 
   return <RenderLogContext.Provider {...{ value }}>{children}</RenderLogContext.Provider>
 }

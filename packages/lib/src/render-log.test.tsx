@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
 import { RenderLogProvider } from './render-log.provider'
-import { withRenderLog } from './with.render-log'
-import { useRenderLog } from './use.render-log'
 import type { PropsWithRenderLog } from './render-log.types'
+import { useRenderLog } from './use.render-log'
+import { withRenderLog } from './with.render-log'
 
 afterEach(() => vi.restoreAllMocks())
 
