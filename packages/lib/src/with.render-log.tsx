@@ -13,7 +13,11 @@ export const withRenderLog: WithRenderLog = <Props extends object>(
 
   const C = (props: PropsWithRenderLogId<Props>): ReactElement<Props> => {
     const { renderLogId: id = '', ...ownProps } = props
-    useRenderLog(id === '' ? displayName : `${displayName}.${id}`, { expected })
+    // Props as details: a re-render with the same props is the one `memo` would have skipped
+    useRenderLog(id === '' ? displayName : `${displayName}.${id}`, {
+      details: ownProps,
+      expected,
+    })
 
     return <Component {...(ownProps as Props)} />
   }

@@ -325,7 +325,36 @@ describe('withRenderLog', () => {
       </Debug>
     )
 
-    expect(errorSpy).toHaveBeenCalledWith('%c • Base - unexpected render (2/1)!', 'color:red')
+    expect(errorSpy).toHaveBeenCalledWith('%c • Base - unexpected render (2/1)!', 'color:red', {})
+  })
+
+  it('logs props as details', () => {
+    function Card({ label }: { label: string }) {
+      return <span>{label}</span>
+    }
+    const Wrapped = withRenderLog(Card)
+
+    const { rerender } = render(
+      <Debug>
+        <Wrapped label="a" />
+      </Debug>
+    )
+    rerender(
+      <Debug>
+        <Wrapped label="a" />
+      </Debug>
+    )
+    rerender(
+      <Debug>
+        <Wrapped label="b" />
+      </Debug>
+    )
+
+    expect(logSpy.mock.calls).toEqual([
+      ['%c • Card - mount', 'color:lightgreen', { label: 'a' }],
+      ['%c • Card - re-render #1 ⟶ nothing changed', 'color:orange', { label: 'a' }],
+      ['%c • Card - re-render #2 ⟶ changed: label', 'color:lightgreen', { label: 'b' }],
+    ])
   })
 
   it('accepts props declared as an interface', () => {
