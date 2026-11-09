@@ -1,9 +1,14 @@
-import type { Context } from 'react'
 import { createContext } from 'react'
 
 import type { RenderLogContextValue } from './render-log.types'
 
-const initialRenderLogContextValue: RenderLogContextValue = () => () => {}
+export const defaultColors = {
+  mount: 'lightgreen',
+  rerender: 'orange',
+}
 
-export const RenderLogContext = ((): Context<RenderLogContextValue> =>
-  createContext<RenderLogContextValue>(initialRenderLogContextValue))()
+// Without a provider nothing is logged
+export const RenderLogContext = createContext<RenderLogContextValue>({
+  colors: defaultColors,
+  debugEnabled: false,
+})

@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import type { PropsWithRenderLog } from 'react-render-log'
-import { RenderLogProvider, withRenderLog } from 'react-render-log'
+import { RenderLogProvider, useRenderLog, withRenderLog } from 'react-render-log'
 
-type ItemProps = PropsWithRenderLog<{ text: string; index: number }>
+type ItemProps = { text: string; index: number }
 
 function ItemBase({ index, text }: ItemProps) {
   return (
@@ -19,17 +18,21 @@ function ItemBase({ index, text }: ItemProps) {
   )
 }
 
-const Item = withRenderLog(ItemBase, 'Item')
+const Item = withRenderLog(ItemBase, { name: 'Item' })
+
+function Counter({ count }: { count: number }) {
+  useRenderLog('Counter', { details: { count, parity: count % 2 ? 'odd' : 'even' } })
+  return null
+}
 
 const items = ['Apple', 'Banana', 'Cherry']
 
 export default function App() {
   const [count, setCount] = useState(0)
   const [debugEnabled, setDebugEnabled] = useState(true)
-  const [isStrictMode, setIsStrictMode] = useState(false)
 
   return (
-    <RenderLogProvider debugEnabled={debugEnabled} isStrictMode={isStrictMode}>
+    <RenderLogProvider debugEnabled={debugEnabled}>
       <main style={{ margin: '0 auto', maxWidth: 520, padding: '2rem 3rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem' }}>
           react-render-log
@@ -56,16 +59,6 @@ export default function App() {
             />
             <code style={{ fontSize: '0.875rem' }}>debugEnabled</code>
           </label>
-          <label
-            style={{ alignItems: 'center', cursor: 'pointer', display: 'flex', gap: '0.5rem' }}
-          >
-            <input
-              type="checkbox"
-              checked={isStrictMode}
-              onChange={(e) => setIsStrictMode(e.target.checked)}
-            />
-            <code style={{ fontSize: '0.875rem' }}>isStrictMode</code>
-          </label>
         </section>
 
         <ul
@@ -82,6 +75,8 @@ export default function App() {
             <Item key={text} text={text} index={index} renderLogId={index} />
           ))}
         </ul>
+
+        <Counter count={count} />
 
         <button
           onClick={() => setCount((c) => c + 1)}

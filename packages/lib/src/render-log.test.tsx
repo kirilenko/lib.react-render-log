@@ -1,341 +1,269 @@
+import type { ReactNode } from 'react'
+import { StrictMode } from 'react'
 import { render } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { MockInstance } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { cache } from './render-log.features'
 import { RenderLogProvider } from './render-log.provider'
-import type { PropsWithRenderLog } from './render-log.types'
+import type { RenderLogOptions } from './render-log.types'
 import { useRenderLog } from './use.render-log'
 import { withRenderLog } from './with.render-log'
 
+let logSpy: MockInstance<typeof console.log>
+let errorSpy: MockInstance<typeof console.error>
+
+beforeEach(() => {
+  logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+  errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+})
+
 afterEach(() => vi.restoreAllMocks())
 
-function ExpiringItem({ id }: { id: number }) {
-  useRenderLog()(`ExpiringItem.${id}`)()
+const logMessages = (): string[] => logSpy.mock.calls.map(([message]) => String(message))
+
+function Logged({ name, options }: { name: string; options?: RenderLogOptions }) {
+  useRenderLog(name, options)
   return null
 }
+
+function Debug({ children }: { children: ReactNode }) {
+  return <RenderLogProvider debugEnabled>{children}</RenderLogProvider>
+}
+
+describe('useRenderLog', () => {
+  it('does not log without a provider', () => {
+    render(<Logged name="NoProvider" />)
+    expect(logSpy).not.toHaveBeenCalled()
+  })
+
+  it('does not log when debugEnabled is false', () => {
+    render(
+      <RenderLogProvider debugEnabled={false}>
+        <Logged name="Disabled" />
+      </RenderLogProvider>
+    )
+    expect(logSpy).not.toHaveBeenCalled()
+  })
+
+  it('logs mount and numbered re-renders', () => {
+    const { rerender } = render(
+      <Debug>
+        <Logged name="Counter" />
+      </Debug>
+    )
+    rerender(
+      <Debug>
+        <Logged name="Counter" />
+      </Debug>
+    )
+
+    expect(logMessages()).toEqual(['%c • Counter - mount', '%c • Counter - re-render #1'])
+    expect(logSpy).toHaveBeenNthCalledWith(1, expect.any(String), 'color:lightgreen')
+    expect(logSpy).toHaveBeenNthCalledWith(2, expect.any(String), 'color:orange')
+  })
+
+  it('does not count strict-mode double renders and effects', () => {
+    const element = (
+      <StrictMode>
+        <Debug>
+          <Logged name="Strict" />
+        </Debug>
+      </StrictMode>
+    )
+    const { rerender } = render(element)
+    rerender(
+      <StrictMode>
+        <Debug>
+          <Logged name="Strict" />
+        </Debug>
+      </StrictMode>
+    )
+
+    expect(logMessages()).toEqual(['%c • Strict - mount', '%c • Strict - re-render #1'])
+  })
+
+  it('counts each instance separately', () => {
+    render(
+      <Debug>
+        <Logged name="Same" />
+        <Logged name="Same" />
+      </Debug>
+    )
+
+    expect(logMessages()).toEqual(['%c • Same - mount', '%c • Same - mount'])
+  })
+
+  it('starts counting again after a remount', () => {
+    const { rerender } = render(
+      <Debug>
+        <Logged key="a" name="Row" />
+      </Debug>
+    )
+    rerender(
+      <Debug>
+        <Logged key="b" name="Row" />
+      </Debug>
+    )
+
+    expect(logMessages()).toEqual(['%c • Row - mount', '%c • Row - mount'])
+  })
+
+  it('logs console.error once commits exceed expected', () => {
+    const options = { expected: 1 }
+    const { rerender } = render(
+      <Debug>
+        <Logged name="Limited" options={options} />
+      </Debug>
+    )
+    rerender(
+      <Debug>
+        <Logged name="Limited" options={options} />
+      </Debug>
+    )
+
+    expect(logMessages()).toEqual(['%c • Limited - mount'])
+    expect(errorSpy).toHaveBeenCalledWith('%c • Limited - unexpected render (2/1)!', 'color:red')
+  })
+
+  it('logs details as is and lists the keys that changed', () => {
+    const { rerender } = render(
+      <Debug>
+        <Logged name="Details" options={{ details: { filter: 'a', page: 1 } }} />
+      </Debug>
+    )
+    rerender(
+      <Debug>
+        <Logged name="Details" options={{ details: { filter: 'b', page: 1 } }} />
+      </Debug>
+    )
+
+    expect(logSpy).toHaveBeenNthCalledWith(1, '%c • Details - mount', expect.any(String), {
+      filter: 'a',
+      page: 1,
+    })
+    expect(logSpy).toHaveBeenNthCalledWith(
+      2,
+      '%c • Details - re-render #1 ⟶ changed: filter',
+      expect.any(String),
+      { filter: 'b', page: 1 }
+    )
+  })
+})
 
 describe('RenderLogProvider', () => {
   it('renders children', () => {
     const { getByText } = render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
+      <Debug>
         <span>child</span>
-      </RenderLogProvider>
+      </Debug>
     )
     expect(getByText('child')).toBeInTheDocument()
   })
 
-  it('does not log when debugEnabled is false', () => {
-    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    function Child() {
-      const getRenderLog = useRenderLog()
-      getRenderLog('Child')()
-      return null
-    }
-
+  it('uses custom colors', () => {
     render(
-      <RenderLogProvider debugEnabled={false} isStrictMode={false}>
-        <Child />
+      <RenderLogProvider colors={{ mount: 'blue', rerender: 'red' }} debugEnabled>
+        <Logged name="Colored" />
       </RenderLogProvider>
     )
-
-    expect(spy).not.toHaveBeenCalled()
-  })
-
-  it('logs to console when debugEnabled is true', () => {
-    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    function Child() {
-      const getRenderLog = useRenderLog()
-      getRenderLog('Child')()
-      return null
-    }
-
-    render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <Child />
-      </RenderLogProvider>
-    )
-
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining('%c'),
-      expect.stringContaining('color:')
-    )
-  })
-
-  it('includes the display name in the log message', () => {
-    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    function Child() {
-      const getRenderLog = useRenderLog()
-      getRenderLog('MyComponent')()
-      return null
-    }
-
-    render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <Child />
-      </RenderLogProvider>
-    )
-
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('MyComponent'), expect.any(String))
+    expect(logSpy).toHaveBeenCalledWith(expect.any(String), 'color:blue')
   })
 
   it('does not re-render consumers when inline colors keep the same values', () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    let consumerRenders = 0
-    function Consumer() {
-      useRenderLog()
-      consumerRenders++
-      return null
-    }
     // Stable element: it re-renders only when the context value changes
-    const consumer = <Consumer />
+    const consumer = <Logged name="Consumer" />
 
-    const renderProvider = () => (
-      <RenderLogProvider
-        colors={{ extraRender: 'red', firstRender: 'blue' }}
-        debugEnabled
-        isStrictMode={false}
-      >
+    const { rerender } = render(
+      <RenderLogProvider colors={{ mount: 'blue', rerender: 'red' }} debugEnabled>
+        {consumer}
+      </RenderLogProvider>
+    )
+    rerender(
+      <RenderLogProvider colors={{ mount: 'blue', rerender: 'red' }} debugEnabled>
         {consumer}
       </RenderLogProvider>
     )
 
-    const { rerender } = render(renderProvider())
-    rerender(renderProvider())
-
-    expect(consumerRenders).toBe(1)
-  })
-
-  it('removes expired records from the render cache', () => {
-    vi.useFakeTimers()
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    const { rerender } = render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        {[1, 2, 3].map((id) => (
-          <ExpiringItem key={id} id={id} />
-        ))}
-      </RenderLogProvider>
-    )
-    expect(cache.has('ExpiringItem.1')).toBe(true)
-
-    vi.advanceTimersByTime(1000)
-    rerender(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <ExpiringItem id={4} />
-      </RenderLogProvider>
-    )
-
-    expect([...cache.keys()].filter((key) => key.startsWith('ExpiringItem.'))).toEqual([
-      'ExpiringItem.4',
-    ])
-    vi.useRealTimers()
-  })
-})
-
-describe('expected render count', () => {
-  it('does not error when render count is within expected', () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    function WithinExpected() {
-      const getRenderLog = useRenderLog()
-      getRenderLog('WithinExpected')({ expected: 2 })
-      return null
-    }
-
-    render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <WithinExpected />
-      </RenderLogProvider>
-    )
-
-    expect(errorSpy).not.toHaveBeenCalled()
-  })
-
-  it('logs console.error when render count exceeds expected', () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    let renderCount = 0
-
-    function ExceedsExpected() {
-      const getRenderLog = useRenderLog()
-      renderCount++
-      getRenderLog('ExceedsExpected')({ expected: 1 })
-      return null
-    }
-
-    const { rerender } = render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <ExceedsExpected />
-      </RenderLogProvider>
-    )
-
-    rerender(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <ExceedsExpected />
-      </RenderLogProvider>
-    )
-
-    expect(renderCount).toBe(2)
-    expect(errorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('unexpected render (2/1)'),
-      expect.any(String)
-    )
-  })
-
-  it('still logs normally when expected is not exceeded', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    function NormalLog() {
-      const getRenderLog = useRenderLog()
-      getRenderLog('NormalLog')({ expected: 3 })
-      return null
-    }
-
-    render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <NormalLog />
-      </RenderLogProvider>
-    )
-
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('NormalLog'), expect.any(String))
-  })
-
-  it('backward compatible: plain args still work', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    function PlainArgs() {
-      const getRenderLog = useRenderLog()
-      getRenderLog('PlainArgs')('some context')
-      return null
-    }
-
-    render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <PlainArgs />
-      </RenderLogProvider>
-    )
-
-    expect(logSpy).toHaveBeenCalledWith(
-      expect.stringContaining('PlainArgs ⟶'),
-      expect.any(String),
-      'some context'
-    )
-  })
-
-  it('passes object args to the console as is', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    const payload = { id: 1 }
-
-    function ObjectArgs() {
-      useRenderLog()('ObjectArgs')(payload)
-      return null
-    }
-
-    render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <ObjectArgs />
-      </RenderLogProvider>
-    )
-
-    expect(logSpy).toHaveBeenCalledWith(expect.any(String), expect.any(String), payload)
+    expect(logMessages()).toEqual(['%c • Consumer - mount'])
   })
 })
 
 describe('withRenderLog', () => {
-  it('renders the wrapped component', () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    type Props = { label: string }
-    function Base({ label }: PropsWithRenderLog<Props>) {
+  it('renders the wrapped component and logs its renders', () => {
+    function Card({ label }: { label: string }) {
       return <span>{label}</span>
     }
-    const Wrapped = withRenderLog(Base)
+    const Wrapped = withRenderLog(Card)
 
     const { getByText } = render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
+      <Debug>
         <Wrapped label="hello" />
-      </RenderLogProvider>
+      </Debug>
     )
 
     expect(getByText('hello')).toBeInTheDocument()
+    expect(logMessages()).toEqual(['%c • Card - mount'])
   })
 
-  it('sets displayName on the wrapper', () => {
-    type Props = Record<string, unknown>
-    function Base(_: PropsWithRenderLog<Props>) {
+  it('uses the custom name as displayName and in the log', () => {
+    function Base() {
       return null
     }
-    const Wrapped = withRenderLog(Base, 'CustomName')
-    expect(Wrapped.displayName).toBe('CustomName')
-  })
-
-  it('uses custom displayName in log output', () => {
-    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    type Props = Record<string, unknown>
-    function Base(_: PropsWithRenderLog<Props>) {
-      return null
-    }
-    const Wrapped = withRenderLog(Base, 'CustomName')
+    const Wrapped = withRenderLog(Base, { name: 'CustomName' })
 
     render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
+      <Debug>
         <Wrapped />
-      </RenderLogProvider>
+      </Debug>
     )
 
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('CustomName'), expect.any(String))
+    expect(Wrapped.displayName).toBe('CustomName')
+    expect(logMessages()).toEqual(['%c • CustomName - mount'])
   })
 
-  it('appends renderLogId to the display name when provided', () => {
-    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    type Props = Record<string, unknown>
-    function Base(_: PropsWithRenderLog<Props>) {
-      return null
-    }
-    const Wrapped = withRenderLog(Base, 'Item')
-
-    render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <Wrapped renderLogId={42} />
-      </RenderLogProvider>
-    )
-
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Item.42'), expect.any(String))
-  })
-
-  it('does not pass renderLogId to the wrapped component', () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {})
-
+  it('appends renderLogId to the name and does not pass it to the component', () => {
     let receivedProps: object = {}
-    function Base(props: PropsWithRenderLog<{ label: string }>) {
+    function Item(props: { label: string }) {
       receivedProps = props
       return null
     }
-    const Wrapped = withRenderLog(Base)
+    const Wrapped = withRenderLog(Item)
 
     render(
-      <RenderLogProvider debugEnabled isStrictMode={false}>
-        <Wrapped label="hello" renderLogId={1} />
-      </RenderLogProvider>
+      <Debug>
+        <Wrapped label="hello" renderLogId={42} />
+      </Debug>
     )
 
-    expect(receivedProps).not.toHaveProperty('renderLogId')
-    expect(receivedProps).toHaveProperty('label', 'hello')
+    expect(logMessages()).toEqual(['%c • Item.42 - mount'])
+    expect(receivedProps).toEqual({ label: 'hello' })
+  })
+
+  it('passes expected to the hook', () => {
+    function Base() {
+      return null
+    }
+    const Wrapped = withRenderLog(Base, { expected: 1 })
+
+    const { rerender } = render(
+      <Debug>
+        <Wrapped />
+      </Debug>
+    )
+    rerender(
+      <Debug>
+        <Wrapped />
+      </Debug>
+    )
+
+    expect(errorSpy).toHaveBeenCalledWith('%c • Base - unexpected render (2/1)!', 'color:red')
   })
 
   it('accepts props declared as an interface', () => {
     interface Props {
       label: string
     }
-    function Base({ label }: PropsWithRenderLog<Props>) {
+    function Base({ label }: Props) {
       return <span>{label}</span>
     }
     const Wrapped = withRenderLog(Base)

@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/npm/v/react-render-log)](https://www.npmjs.com/package/react-render-log)
 [![license](https://img.shields.io/npm/l/react-render-log)](./packages/lib/README.md#license)
 
-Monorepo for the [`react-render-log`](https://www.npmjs.com/package/react-render-log) npm package — a React hook and HOC for logging component re-renders to the browser console, color-coded by render type.
+Monorepo for the [`react-render-log`](https://www.npmjs.com/package/react-render-log) npm package — a React hook and HOC for logging component renders to the browser console.
 
 ## Requirements
 
