@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/kirilenko/lib.react-render-log/compare/v2.1.0...v2.1.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* use a regular arrow before changed keys ([ba81784](https://github.com/kirilenko/lib.react-render-log/commit/ba81784039f60d28ac0c6f86a5832ec8a336069d))
+
 # [2.1.0](https://github.com/kirilenko/lib.react-render-log/compare/v2.0.0...v2.1.0) (2026-11-09)
 
 
