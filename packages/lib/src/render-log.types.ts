@@ -1,16 +1,21 @@
 import type { ComponentType, PropsWithChildren } from 'react'
 
 export type RenderLogColors = {
+  // Mount and re-renders with a visible reason
   mount: string
+  // Suspicious re-renders: nothing in `details` changed, or a burst without `details`
   rerender: string
 }
 
 export type RenderLogProviderProps = PropsWithChildren<{
+  // Without `details`, a re-render sooner than this (ms) after the previous one is suspicious
+  burstWindow?: number
   colors?: RenderLogColors
   debugEnabled: boolean
 }>
 
 export type RenderLogContextValue = {
+  burstWindow: number
   colors: RenderLogColors
   debugEnabled: boolean
 }

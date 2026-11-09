@@ -6,6 +6,7 @@ import type { RenderLogOptions } from './render-log.types'
 
 type RenderLogState = {
   commits: number
+  lastCommitAt: number
   lastRender: object | null
   prevDetails?: Record<string, unknown>
 }
@@ -14,8 +15,8 @@ type RenderLogState = {
 // double render, interrupted concurrent renders) never reach the effect
 export const useRenderLog = (name: string, options: RenderLogOptions = {}): void => {
   const { details, expected } = options
-  const { colors, debugEnabled } = useContext(RenderLogContext)
-  const stateRef = useRef<RenderLogState>({ commits: 0, lastRender: null })
+  const { burstWindow, colors, debugEnabled } = useContext(RenderLogContext)
+  const stateRef = useRef<RenderLogState>({ commits: 0, lastCommitAt: 0, lastRender: null })
 
   // A new object per render: strict mode re-runs effects of the same render on mount,
   // and this identity tells such a re-run apart from a new commit
@@ -27,12 +28,29 @@ export const useRenderLog = (name: string, options: RenderLogOptions = {}): void
     current.lastRender = render
     current.commits += 1
 
+    const now = Date.now()
+    const sincePrevCommit = now - current.lastCommitAt
+    current.lastCommitAt = now
+
     if (!debugEnabled) return
 
     // Compared with the last logged render, so changes made while logging was off still show up
     const changedKeys = details ? getChangedKeys(current.prevDetails, details) : []
     current.prevDetails = details
 
-    writeRenderLog({ changedKeys, colors, commits: current.commits, details, expected, name })
+    // With `details` a re-render is justified by a changed key; without them only
+    // timing is known, and a quick burst of re-renders is what usually needs fixing
+    const isSuspicious =
+      current.commits > 1 && (details ? changedKeys.length === 0 : sincePrevCommit < burstWindow)
+
+    writeRenderLog({
+      changedKeys,
+      colors,
+      commits: current.commits,
+      details,
+      expected,
+      isSuspicious,
+      name,
+    })
   })
 }

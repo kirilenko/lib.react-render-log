@@ -16,8 +16,9 @@ export const writeRenderLog = (props: {
   expected?: number
   details?: Record<string, unknown>
   changedKeys: string[]
+  isSuspicious: boolean
 }): void => {
-  const { changedKeys, colors, commits, details, expected, name } = props
+  const { changedKeys, colors, commits, details, expected, isSuspicious, name } = props
   const detailsArgs = details ? [details] : []
 
   if (expected !== undefined && commits > expected) {
@@ -30,13 +31,17 @@ export const writeRenderLog = (props: {
   }
 
   const label = commits === 1 ? 'mount' : `re-render #${commits - 1}`
-  const changed = changedKeys.length ? ` ⟶ changed: ${changedKeys.join(', ')}` : ''
+  const changed = changedKeys.length
+    ? ` ⟶ changed: ${changedKeys.join(', ')}`
+    : details && commits > 1
+      ? ' ⟶ nothing changed'
+      : ''
 
   // Details go to the console as is, so objects stay expandable in DevTools
   // eslint-disable-next-line no-console
   console.log(
     `%c • ${name} - ${label}${changed}`,
-    `color:${commits === 1 ? colors.mount : colors.rerender}`,
+    `color:${isSuspicious ? colors.rerender : colors.mount}`,
     ...detailsArgs
   )
 }

@@ -167,6 +167,58 @@ describe('useRenderLog', () => {
   })
 })
 
+describe('re-render color', () => {
+  const renderDetails = (page: number) => (
+    <Debug>
+      <Logged name="Colors" options={{ details: { page } }} />
+    </Debug>
+  )
+
+  it('marks a re-render with changed details as normal', () => {
+    const { rerender } = render(renderDetails(1))
+    rerender(renderDetails(2))
+
+    expect(logSpy).toHaveBeenLastCalledWith(
+      '%c • Colors - re-render #1 ⟶ changed: page',
+      'color:lightgreen',
+      { page: 2 }
+    )
+  })
+
+  it('marks a re-render with unchanged details as suspicious', () => {
+    const { rerender } = render(renderDetails(1))
+    rerender(renderDetails(1))
+
+    expect(logSpy).toHaveBeenLastCalledWith(
+      '%c • Colors - re-render #1 ⟶ nothing changed',
+      'color:orange',
+      { page: 1 }
+    )
+  })
+
+  it('without details, marks only re-renders within burstWindow as suspicious', () => {
+    vi.useFakeTimers()
+    const renderTree = () => (
+      <RenderLogProvider burstWindow={100} debugEnabled>
+        <Logged name="Burst" />
+      </RenderLogProvider>
+    )
+
+    const { rerender } = render(renderTree())
+    vi.advanceTimersByTime(50)
+    rerender(renderTree())
+    vi.advanceTimersByTime(150)
+    rerender(renderTree())
+    vi.useRealTimers()
+
+    expect(logSpy.mock.calls).toEqual([
+      ['%c • Burst - mount', 'color:lightgreen'],
+      ['%c • Burst - re-render #1', 'color:orange'],
+      ['%c • Burst - re-render #2', 'color:lightgreen'],
+    ])
+  })
+})
+
 describe('RenderLogProvider', () => {
   it('renders children', () => {
     const { getByText } = render(

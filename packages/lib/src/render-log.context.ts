@@ -7,8 +7,11 @@ export const defaultColors = {
   rerender: 'orange',
 }
 
+export const defaultBurstWindow = 500
+
 // Without a provider nothing is logged
 export const RenderLogContext = createContext<RenderLogContextValue>({
+  burstWindow: defaultBurstWindow,
   colors: defaultColors,
   debugEnabled: false,
 })
