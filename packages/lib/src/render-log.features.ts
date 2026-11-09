@@ -32,9 +32,9 @@ export const writeRenderLog = (props: {
 
   const label = commits === 1 ? 'mount' : `re-render #${commits - 1}`
   const changed = changedKeys.length
-    ? ` ⟶ changed: ${changedKeys.join(', ')}`
+    ? ` → changed: ${changedKeys.join(', ')}`
     : details && commits > 1
-      ? ' ⟶ nothing changed'
+      ? ' → nothing changed'
       : ''
 
   // Details go to the console as is, so objects stay expandable in DevTools

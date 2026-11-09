@@ -46,8 +46,8 @@ function UserCard({ user, filter }: Props) {
 
 ```
 • UserCard - mount                          {user: {…}, filter: 'all'}     green
-• UserCard - re-render #1 ⟶ changed: filter {user: {…}, filter: 'active'}  green
-• UserCard - re-render #2 ⟶ nothing changed {user: {…}, filter: 'active'}  orange
+• UserCard - re-render #1 → changed: filter {user: {…}, filter: 'active'}  green
+• UserCard - re-render #2 → nothing changed {user: {…}, filter: 'active'}  orange
 ```
 
 | Option     | Type                      | Description                                                                                |
@@ -69,7 +69,7 @@ export default withRenderLog(UserCard, { expected: 2 })
 
 Options: `name` (defaults to the component's `displayName` or `name`) and `expected`.
 
-The HOC logs the component's props as `details`, so a re-render with the same props, one that `memo` would have skipped, shows up orange with `⟶ nothing changed`.
+The HOC logs the component's props as `details`, so a re-render with the same props, one that `memo` would have skipped, shows up orange with `→ nothing changed`.
 
 Use `renderLogId` to tell instances apart in the log. It is not passed to the wrapped component:
 

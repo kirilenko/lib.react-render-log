@@ -143,7 +143,7 @@ describe('useRenderLog', () => {
     })
     expect(logSpy).toHaveBeenNthCalledWith(
       2,
-      '%c • Details - re-render #1 ⟶ changed: filter',
+      '%c • Details - re-render #1 → changed: filter',
       expect.any(String),
       { filter: 'b', page: 1 }
     )
@@ -162,7 +162,7 @@ describe('useRenderLog', () => {
 
     expect(logMessages()).toEqual([
       '%c • Paused - mount',
-      '%c • Paused - re-render #2 ⟶ changed: page',
+      '%c • Paused - re-render #2 → changed: page',
     ])
   })
 })
@@ -179,7 +179,7 @@ describe('re-render color', () => {
     rerender(renderDetails(2))
 
     expect(logSpy).toHaveBeenLastCalledWith(
-      '%c • Colors - re-render #1 ⟶ changed: page',
+      '%c • Colors - re-render #1 → changed: page',
       'color:lightgreen',
       { page: 2 }
     )
@@ -190,7 +190,7 @@ describe('re-render color', () => {
     rerender(renderDetails(1))
 
     expect(logSpy).toHaveBeenLastCalledWith(
-      '%c • Colors - re-render #1 ⟶ nothing changed',
+      '%c • Colors - re-render #1 → nothing changed',
       'color:orange',
       { page: 1 }
     )
@@ -352,8 +352,8 @@ describe('withRenderLog', () => {
 
     expect(logSpy.mock.calls).toEqual([
       ['%c • Card - mount', 'color:lightgreen', { label: 'a' }],
-      ['%c • Card - re-render #1 ⟶ nothing changed', 'color:orange', { label: 'a' }],
-      ['%c • Card - re-render #2 ⟶ changed: label', 'color:lightgreen', { label: 'b' }],
+      ['%c • Card - re-render #1 → nothing changed', 'color:orange', { label: 'a' }],
+      ['%c • Card - re-render #2 → changed: label', 'color:lightgreen', { label: 'b' }],
     ])
   })
 
