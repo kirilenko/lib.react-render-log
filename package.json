@@ -15,7 +15,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
-    "@eslint-react/eslint-plugin": "^5.28.8",
+    "@eslint-react/eslint-plugin": "^5.30.2",
     "@eslint/js": "^10.0.1",
     "@semantic-release/changelog": "^7.0.0",
     "eslint": "^10.14.0",
@@ -30,11 +30,11 @@
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "globals": "^17.14.0",
     "husky": "^9.1.7",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.1",
     "semantic-release": "^25.0.9",
-    "turbo": "^2.11.10",
+    "turbo": "^2.11.11",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "typescript-eslint": "^8.72.1",
+    "typescript-eslint": "^8.72.2",
     "typescript-native": "npm:typescript@^7.0.2"
   },
   "engines": {
